@@ -19,11 +19,28 @@ var shoppers = [
 ];
 
 //Nest by shopper type
+var shoppersByType = d3.nest() //the most improtant thing in nest is the criteria by which we group elements
+    .key(function(d){return d.type;})
+    .entries(shoppers);
+
+shoppersByType.forEach(function(type){
+    console.log(type);
+
+    type.totalSpending = d3.sum(type.values, function(d){return d.spending});
+});
 
 //Nest by types of products bought
+var shoppersByProduct = d3.nest()
+    .key(function(d){return d.product;})
+    .entries(shoppers);
 
 //How much is spent in total on each product?
+shoppersByProduct.forEach(function(product){
+    product.total = d3.sum(product.values, function(d){return d.spending});
+})
 
 //How much did an average adult spend? Child?
-
+shoppersByType.forEach(function(type){
+    type.totalSpending = d3.mean(type.values, function(d){return d.spending});
+})
 //How much was spent by adults on oranges?

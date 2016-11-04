@@ -16,7 +16,7 @@ var scaleColor = d3.scaleOrdinal().range(d3.schemeCategory20);
 d3.csv('../data/co2 emission-2.csv',parse,dataloaded);
 
 function dataloaded(err, countries){
-
+    console.table(countries);
     //Create d3.arc() generator
     var arc = d3.arc()
         .startAngle(function(d){return d.startAngle})
@@ -25,15 +25,28 @@ function dataloaded(err, countries){
         .outerRadius(200);
 
     //Data transformation
+    var emissionsByRegion = d3.nest()
+        .key(function(d){return d.region}) // you group the countries by the region. The .key is part of d3.nest
+        .rollup(function(values){return d3.sum(values, function(d){return d.emission2011})}) //
+        .entries(countries);
+
+    console.table(emissionsByRegion);
 
     //Create a d3.pie() layout function to transform the data
-    var pie = d3.pie();
+    var pie = d3.pie()
+        .value(function(d){return d.value});
 
     //Draw ENTER set
-    var slices;
+    var slices = plot.selectAll("path")
+        .data( pie(emissionsByRegion))
+        .enter()
+        .append("path").attr("class", "slice country")
+        .attr("d", arc)
+        .attr("transform", "translate("+w/2+", "+h/2+")")
+        .style("fill", function(d, i){return scaleColor(i)});
 
     //Tooltip
-    /*slices.on('mouseenter',function(d){
+    slices.on('mouseenter',function(d){
         var tooltip = d3.select('.custom-tooltip');
 
         tooltip.select('.title').html(d.data.key);
@@ -60,8 +73,9 @@ function dataloaded(err, countries){
                 .style('opacity',0);
 
             d3.select(this).transition().style('opacity',.7);
-        });*/
+        });
 }
+
 
 function parse(d){
     return {
